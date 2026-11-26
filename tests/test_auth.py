@@ -46,3 +46,7 @@ def test_wrong_password_login_fails(client):
 def test_invalid_registration_data(client):
     registered = client.post("/auth/register", json=USER_INVALID_DETAILS)
     assert registered.status_code == 422
+
+# Stelios's version
+def test_invalid_registration_cool_version(client):
+    assert client.post("/auth/register", json={**USER, "email": "invalid"}).status_code == 422
