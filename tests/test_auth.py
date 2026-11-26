@@ -1,6 +1,9 @@
 from security import hash_password, verify_password
 
 USER = {"username": "student", "email": "student@example.com", "password": "secret123"}
+USER_WRONG_PASSWORD = {"username": "student", "email": "student@example.com", "password": "wrong_password"}
+USER_INVALID_DETAILS = {"username": "s", "email": "student@com", "password": "123"}
+
 
 def test_password_hash():
     hashed = hash_password(USER["password"])
@@ -25,10 +28,21 @@ def test_profile_requires_token(client):
     assert response.json() == {"detail":"Not authenticated"}
 
 def test_duplicate_registration_fails(client):
-    ... #409
+    registered = client.post("/auth/register", json=USER)
+    assert registered.status_code == 201
+    assert set(registered.json()) == {"id", "username", "email"}
+    duplicate_register = client.post("/auth/register", json=USER)
+    assert duplicate_register.status_code == 409
+    assert duplicate_register.json() == {"detail":"Email already registered"}
 
 def test_wrong_password_login_fails(client):
-    ... # 401
+    registered = client.post("/auth/register", json=USER)
+    assert registered.status_code == 201
+    assert set(registered.json()) == {"id", "username", "email"}
+    login = client.post("/auth/login", json=USER_WRONG_PASSWORD)
+    assert login.status_code == 401
+    assert login.json() == {"detail":"Invalid email or password"}
 
 def test_invalid_registration_data(client):
-    ... #422
+    registered = client.post("/auth/register", json=USER_INVALID_DETAILS)
+    assert registered.status_code == 422
